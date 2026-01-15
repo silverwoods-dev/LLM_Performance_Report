@@ -34,18 +34,34 @@ Apple Silicon 환경(M4, M5)에서 로컬 LLM(Ollama)의 성능을 측정하고 
 
 ### 2. 설치
 ```bash
-git clone https://github.com/your-username/apple-silicon-llm-bench.git
-cd apple-silicon-llm-bench
+git clone https://github.com/silverwoods-dev/LLM_Performance_Report.git
+cd LLM_Performance_Report
 uv sync
 ```
 
 ### 3. 스크립트 실행
-```bash
-# 환경 검증
-python ollama_verify.py
 
-# 벤치마크 수행
-python ollama_benchmark.py
+#### 1) 모델 설치
+벤치마크에 필요한 모델들을 자동으로 다운로드합니다.
+```bash
+python ollama_setup.py
+```
+
+#### 2) 성능 측정 (벤치마크)
+각 시스템에서 벤치마크를 수행합니다. `--id`는 필수이며, 메모리 제약으로 실행 불가능한 모델은 `--skip`으로 제외할 수 있습니다.
+
+```bash
+# M4 16GB 환경 (32B 모델 등 대형 모델 제외)
+python ollama_benchmark.py --id M4_16GB --skip exaone3.5:32b qwen2.5:32b
+
+# M5 32GB 환경 (전체 모델 실행)
+python ollama_benchmark.py --id M5_32GB
+```
+
+#### 3) 결과 비교 및 검증
+생성된 두 JSON 파일을 비교하여 성능 향상 수치와 아키텍처 효율성을 분석합니다.
+```bash
+python ollama_verify.py benchmark_M4_16GB.json benchmark_M5_32GB.json
 ```
 
 ## ⚖️ 라이선스
