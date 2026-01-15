@@ -33,6 +33,5 @@ ENV/
 *.swo
 
 # Project specific
-benchmark_M[45]_*.json
 .python-version
 uv.lock
