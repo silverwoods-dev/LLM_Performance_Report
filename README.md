@@ -11,7 +11,8 @@ Apple Silicon 환경(M4, M5)에서 로컬 LLM(Ollama)의 성능을 측정하고 
 상세한 비교 분석 결과와 하드웨어 아키텍처에 따른 성능 인사이트는 아래 문서에서 확인하실 수 있습니다.
 
 *   👉 **[Apple Silicon LLM 성능 비교 보고서 (M4 vs M5)](benchmark_report.md)**
-*   👉 **[번외: Apple M5 vs. NVIDIA RTX 4080 성능 비교](benchmark_report_etc.md)** 🚀 (VRAM Memory Wall 분석 포함)
+*   👉 **[번외: Apple M5 vs. NVIDIA RTX 4080 성능 비교](benchmark_report_etc.md)** (VRAM Memory Wall 분석)
+*   👉 **[LLM 답변 품질 및 일관성 비교 분석](benchmark_response_comparison.md)** 📝 (모델별/시스템별 정성 평가)
 
 ---
 
