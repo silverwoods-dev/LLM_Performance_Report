@@ -1,76 +1,49 @@
-# 🎮 LLM Performance Report [번외]: Apple M5 vs. NVIDIA RTX 4080
+# 💻 External Hardware Reference: Apple M5 vs NVIDIA RTX 4080
 
-본 보고서는 **Apple M5 32GB**와 **NVIDIA RTX 4080 16GB** 시스템 간의 LLM 추론 성능을 비교 분석한 결과입니다. 하이엔드 데스크탑 GPU와 최신 통합 메모리 아키텍처 가속기 간의 성능 특성 차이를 하드웨어 아키텍처 관점에서 규명하였습니다.
-
----
-
-## 1. 💡 핵심 요약 (Executive Summary)
-
-*   **VRAM의 한계 (Memory Wall)**: RTX 4080은 16GB VRAM을 초과하는 모델 구동 시 성능이 **처참하게 붕괴**(t/s 95% 하락)합니다. 반면 M5는 32GB 통합 메모리를 통해 안정적인 성능을 유지합니다.
-*   **압도적 생성 성능 (In-VRAM)**: 모델이 VRAM 내에 상주할 경우(8B급 이하), RTX 4080은 M5 대비 **약 4.5배(350%+) 빠른 생성 속도**를 보여줍니다.
-*   **아키텍처의 반전 (P-Eval)**: M5의 **Neural Accelerator**는 프롬프트 분석 단계에서 GPU 버스 병목이 없는 구조적 우위를 가집니다. RTX 4080 시스템은 호스트(i5-9600K)의 **PCIe 3.0 대역폭 한계**로 인해 특정 상황에서 입력 분석 속도가 붕괴되는 현상이 관찰되었습니다.
+본 문서는 Apple M5 32GB 시스템과 일반적인 PC 환경(NVIDIA RTX 4080) 간의 성능 차이를 비교 분석하고, <strong>PCIe 인터페이스 및 메모리 한계</strong>가 LLM 성능에 미치는 영향을 기술적으로 추적합니다.
 
 ---
 
-## 2. 🖥️ 하드웨어 사양 비교 (Hardware Specs)
+## 1. ⚙️ 비교 시스템 제원 (Comparative Specs)
 
-| 항목 | Apple M5 (32GB) | NVIDIA RTX 4080 (16GB) | 비고 |
-| :--- | :--- | :--- | :--- |
-| **GPU/메모리** | 통합 GPU (32GB Unified) | 전용 GPU (16GB VRAM) | **M5 용량 우위** |
-| **메모리 대역폭** | **153.6 GB/s** | **716.8 GB/s** | **4080 대역폭 4.6배** |
-| **연결 버스** | On-Die (Zero Latency) | **PCIe 3.0 x16 (Legacy)** | i5-9600K 환경 |
-| **OS** | macOS (Darwin) | Windows 11 | CUDA vs Metal/MLX |
-
----
-
-## 3. 📊 상세 벤치마크 데이터 비교
-
-### 3.1 소형 모델 (VRAM 상주 환경)
-모델이 VRAM에 여유 있게 들어갈 때, RTX 4080의 압도적인 물리적 대역폭이 빛을 발합니다.
-
-| 모델명 | M5 (t/s) | 4080 (t/s) | 차이 (Diff %) |
-| :--- | :---: | :---: | :---: |
-| **exaone3.5:7.8b** | 25.93 | **116.12** | **+347.8%** |
-| **llama3.1:8b** | 25.21 | **115.90** | **+359.8%** |
-
-### 3.2 대형 모델 및 임계치 환경 (VRAM Ceiling)
-16GB의 한계점에 도전하는 14B 모델과 이를 초과하는 32B 모델에서의 데이터 변화입니다.
-
-| 모델명 | M5 (t/s) | 4080 (t/s) | 차이 (Diff %) | 상태 |
-| :--- | :---: | :---: | :---: | :--- |
-| **deepseek-r1:14b** | 13.74 | **63.64** | +363.3% | Token Gen은 선방 |
-| **└ P-Eval (입력분석)** | **65.7** | 3.1 | **-95.2%** | **PCIe 3.0 병목 발생** |
-| **exaone3.5:32b** | **6.35** | 3.15 | **-50.3%** | **M5 승 (용량 한계)** |
-| **qwen2.5:32b** | **6.21** | 3.00 | **-51.6%** | **M5 승 (용량 한계)** |
-
----
-
-## 4. 🧠 기술적 심층 분석 (Deep Dive)
-
-### ① RTX 4080의 병목 원인: 14B 모델 P-Eval 붕괴 분석
-*   **현상**: DeepSeek-R1 14B(Q4)는 약 9GB로 VRAM 내에 충분히 안착 가능합니다. 실제 **63.64 t/s의 높은 Token 생성 속도**가 이를 증명합니다.
-*   **병목 원인 (Scientific Reason)**: 문제는 프롬프트 분석(P-Eval) 시 발생하는 대규모 **활성화 텐서(Activation Tensors)**입니다. 
-    1.  **System Memory Fallback**: Windows 환경의 CUDA 드라이버는 VRAM의 약 15~20%를 OS 및 기타 작업을 위해 보존하려 합니다. 이로 인해 14B 모델 로딩+연산 공간 부족 시 일부 데이터를 **System RAM(DDR4)**으로 오버플로우시킵니다.
-    2.  **PCIe 3.0의 한계**: i5-9600K 시스템의 **PCIe 3.0 x16** 버스는 실측 대역폭이 Unified Memory(153.6GB/s)의 1/15 수준인 **~12GB/s** 이하입니다. 연산 데이터가 CPU-GPU 사이를 오가는 과정에서 극심한 통신 지연이 발생하며 속도가 **3.1 t/s**로 붕괴된 것입니다.
-*   **대조군**: 반면 Apple M5는 칩 내부에서 모든 데이터가 이동하므로(Bus-less), 14B 모델에서도 **65.7 t/s**라는 안정적인 P-Eval 성능을 보여줍니다.
-
-### ② "대역폭의 승리": 8B 모델에서의 4.5배 격차
-*   **정확한 데이터 일치**: 8B 모델은 RTX 4080의 **716.8 GB/s** 대역폭을 100% 활용합니다. 벤치마크 결과인 **115.9 t/s (4080)** vs **25.2 t/s (M5)**의 비율(~4.6배)은 하드웨어 스펙상의 대역폭 차이와 정확히 일치합니다.
-*   **결론**: 모델 가중치 전체가 VRAM에 상주하고 병목이 없는 '체급'일 경우, 전용 GPU의 물리적 성능을 통합 메모리가 추월하기는 불가능합니다.
-
-### ③ Apple M5의 전략적 승리: 32GB 통합 메모리
-*   **성능 역전**: 16GB VRAM을 확실히 초과하는 **32B 모델**에서는 상황이 완전히 반전됩니다. RTX 4080 시스템은 속도가 3.0 t/s대로 주저앉는 반면, M5는 32GB 통합 메모리를 통해 **2배 이상 빠른 6.3 t/s**를 유지합니다.
-*   **Neural Accelerator의 위력**: M5는 부족한 물리적 대역폭을 **10x Neural Accelerator**를 통한 연산 효율성으로 보강하여, 프롬프트 입력 분석 단계에서 안정적인 사용자 경험을 제공합니다.
-
----
-
-## 5. 🎯 결론 및 요약
-
-| 비교 항목 | Apple M5 (32GB) | NVIDIA RTX 4080 (16GB) |
+| 항목 | Apple Silicon (M5) | External PC (RTX 4080) |
 | :--- | :--- | :--- |
-| **추천 용도** | 32B 이상 대용량, 최신 추론형 LLM | 8B 이하 모델, 극강의 생성 속도 파급력 |
-| **강점** | 32GB 대용량, 구조적 병목 없음, 저전력 | 716.8 GB/s의 압도적 깡성능 |
-| **약점** | 153.6 GB/s의 태생적 대역폭 한계 | 구형 CPU/PCIe 인터페이스에서의 병목 |
+| <strong>프로세서</strong> | Apple M5 Chip (10-Core) | Intel Core i5-9600K |
+| <strong>메모리(VRAM)</strong> | <strong>32GB Unified Memory</strong> | <strong>16GB GDDR6X VRAM</strong> |
+| <strong>시스템 메모리</strong> | (통합 메모리 사용) | 64GB DDR4 System RAM |
+| <strong>대역폭 (Core)</strong> | <strong>153.6 GB/s</strong> (Unified) | 736 GB/s (GPU Only) |
+| <strong>버스(Interconnect)</strong> | On-Die (Zero Latency) | <strong>PCIe 3.0 x16</strong> (Limit) |
 
-**최종 제언**: 
-본인의 PC가 PCIe 3.0 환경이라면, RTX 4080의 성능을 100% 쓰기 어렵습니다. **DeepSeek-R1**과 같은 정교한 모델을 스트레스 없이 사용하고 싶다면, 시스템 전체의 데이터 흐름이 원활한 **Apple M5 32GB** 시스템이 전문적인 로컬 AI 환경 구축에 훨씬 유리합니다.
+---
+
+## 2. 📊 벤치마크 데이터: DeepSeek-R1 (14B)
+
+동일한 모델인 `deepseek-r1:14b`를 사용하여 두 시스템의 처리 속도를 대조합니다.
+
+| 측정 지표 | Apple M5 32GB | RTX 4080 (16GB VRAM) | 차이 |
+| :--- | :---: | :---: | :---: |
+| <strong>생성 속도 (Token Gen)</strong> | 13.74 t/s | <strong>63.6 t/s</strong> | <strong>GPU 압승 (+363%)</strong> |
+| <strong>입력 분석 (P-Eval)</strong> | 65.7 t/s | <strong>3.1 t/s</strong> | <strong>Apple M5 압승 (+2,019%)</strong> |
+
+---
+
+## 3. 🔍 기술적 분석 (Scientific Audit)
+
+### ① 생성 속도 (Token Generation): GPU VRAM의 위력
+RTX 4080의 <strong>63.6 t/s</strong>는 Apple M5를 압도합니다. 14B 모델의 가중치(VRAM 점유 약 9~11GB)가 NVIDIA GPU의 <strong>736GB/s 초고속 메모리</strong>에 완전히 상주할 수 있기 때문입니다. 생성 단계는 대역폭 싸움이며, 이 영역에서는 전용 VRAM을 가진 외장 GPU가 여전히 강력합니다.
+
+### ② 입력 분석 (Prompt Evaluation): PCIe 3.0의 병목 (Bottleneck)
+반면, 프롬프트 분석 단계에서 RTX 4080 기반 시스템은 <strong>3.1 t/s</strong>라는 비정상적인 성능 저하를 기록했습니다. 이는 다음과 같은 기술적 이유 때문입니다.
+
+1.  <strong>버스 대역폭 한계 (PCIe 3.0)</strong>: i5-9600K 시스템의 PCIe 3.0 x16 인터페이스는 이론상 15.75GB/s, 실측 대역폭은 그보다 낮습니다.
+2.  <strong>System Memory Fallback</strong>: 14B 모델 구동 시 OS 점유 등을 제외하면 16GB VRAM은 매우 빠듯합니다. 특히 프롬프트 분석 단계에서 발생하는 <strong>Activation Tensors(활성화 텐서)</strong>가 VRAM을 초과하여 <strong>느린 시스템 메모리(DDR4)로 오버플로우</strong>될 경우, 데이터 이동 통로인 PCIe 버스에서 극심한 병목이 발생합니다.
+3.  <strong>데이터 왕복 지연 (Latent)</strong>: Apple M5는 <strong>통합 메모리(Unified Memory)</strong> 구조로 CPU/GPU 간 데이터 이동이 0에 가깝지만, PC 환경은 CPU RAM -> PCIe -> GPU VRAM 간의 물리적 이동이 필요하며, PCIe 3.0 환경에서는 이 병목이 LLM 연산 성능을 완전히 잠식합니다.
+
+---
+
+## 4. ✅ 최종 평가 및 통찰
+
+*   <strong>RTX 4080 (16GB)</strong>: 모델이 VRAM에 완전히 들어가는 크기(약 12B 이하)에서는 <strong>폭발적인 생성 속도</strong>를 보여줍니다. 하지만 PCIe 3.0 환경이나 VRAM 용량 한계에 부딪히는 순간, 프롬프트 분석 성능이 실사용 불가능한 수준으로 급락합니다.
+*   <strong>Apple M5 (32GB)</strong>: 절대적인 생성 속도(t/s)는 GPU에 못 미치지만, <strong>프롬프트 분석 속도가 균형 잡혀 대형 입력(Long Context) 처리 시 훨씬 쾌적</strong>합니다. 특히 통합 메모리의 저지연성 덕분에 하드웨어의 모든 자원을 LLM 연산에 즉각 동원할 수 있는 효율성이 돋보입니다.
+
+<strong>권장사항</strong>: PC에서 AI 환경을 구축한다면 최소 <strong>PCIe 4.0/5.0</strong> 환경과 모델 파라미터 대비 <strong>20% 이상의 여유 VRAM</strong> 확보가 필수적입니다. 반면, Apple Silicon은 이러한 복잡한 병목 고려 없이 <strong>램 용량만 확보되면 최적의 성능</strong>을 일관되게 제공합니다.

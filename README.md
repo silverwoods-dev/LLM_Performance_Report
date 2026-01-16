@@ -4,29 +4,29 @@ Apple Silicon 환경(M4, M5)에서 로컬 LLM(Ollama)의 성능을 측정하고 
 
 ## 🚀 프로젝트 개요
 
-이 프로젝트는 2026년 1월 기준 최신 Apple Silicon 칩셋의 성능을 실제 로컬 LLM 추론 환경에서 테스트합니다. 특히 M5 칩의 **153.6 GB/s Unified Memory**와 새롭게 도입된 **Neural Accelerator** 아키텍처가 DeepSeek-R1, EXAONE 3.5 등의 모델 구동에 미치는 영향을 심층 분석합니다.
+이 프로젝트는 2026년 1월 기준 최신 Apple Silicon 칩셋의 성능을 실제 로컬 LLM 추론 환경에서 테스트합니다. 특히 M5 칩의 <strong>153.6 GB/s Unified Memory</strong>와 새롭게 도입된 <strong>Neural Accelerator</strong> 아키텍처가 DeepSeek-R1, EXAONE 3.5 등의 모델 구동에 미치는 영향을 심층 분석합니다.
 
 ## 📊 벤치마크 결과 보고서
 
 상세한 비교 분석 결과와 하드웨어 아키텍처에 따른 성능 인사이트는 아래 문서에서 확인하실 수 있습니다.
 
-*   👉 **[Apple Silicon LLM 성능 비교 보고서 (M4 vs M5)](benchmark_report.md)**
-*   👉 **[번외: Apple M5 vs. NVIDIA RTX 4080 성능 비교](benchmark_report_etc.md)** (VRAM Memory Wall 분석)
-*   👉 **[LLM 답변 품질 및 일관성 비교 분석](benchmark_response_comparison.md)** 📝 (모델별/시스템별 정성 평가)
+*   👉 <strong>[Apple Silicon LLM 성능 비교 보고서 (M4 vs M5)](benchmark_report.md)</strong>
+*   👉 <strong>[번외: Apple M5 vs. NVIDIA RTX 4080 성능 비교](benchmark_report_etc.md)</strong> (VRAM Memory Wall 분석)
+*   👉 <strong>[LLM 답변 품질 및 일관성 비교 분석](benchmark_response_comparison.md)</strong> 📝 (모델별/시스템별 정성 평가)
 
 ---
 
 ## 🛠️ 주요 기능
 
-- **자동 벤치마크 스크립트**: Ollama 환경에서 다양한 모델의 Token Generation 및 Prompt Evaluation 속도 측정.
-- **환경 검증 도구**: 테스트 전 시스템 사양 및 Ollama 설정 상태 확인.
-- **데이터 분석 및 리포팅**: 수집된 벤치를 바탕으로 시각화 및 인사이트 도출.
+- <strong>자동 벤치마크 스크립트</strong>: Ollama 환경에서 다양한 모델의 Token Generation 및 Prompt Evaluation 속도 측정.
+- <strong>환경 검증 도구</strong>: 테스트 전 시스템 사양 및 Ollama 설정 상태 확인.
+- <strong>데이터 분석 및 리포팅</strong>: 수집된 벤치를 바탕으로 시각화 및 인사이트 도출.
 
 ## 📋 포함 모델
-- **DeepSeek-R1** (14B)
-- **EXAONE 3.5** (7.8B, 32B)
-- **Llama 3.1** (8B)
-- **Qwen 2.5** (32B)
+- <strong>DeepSeek-R1</strong> (14B)
+- <strong>EXAONE 3.5</strong> (7.8B, 32B)
+- <strong>Llama 3.1</strong> (8B)
+- <strong>Qwen 2.5</strong> (32B)
 
 ## 💻 사용 방법
 
