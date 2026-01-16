@@ -14,21 +14,21 @@
 
 ## 2. 🖥️ 테스트 환경 (Test Environment)
 
-본 벤치마크는 2026년 1월 기준 최신 하드웨어 사양을 바탕으로 수행되었습니다. 특히 **메모리 대역폭**과 M5에서 새롭게 강화된 **뉴럴 가속 아키텍처**는 LLM의 로드 및 실시간 추론 효율에 결정적인 역할을 합니다.
+본 벤치마크는 2026년 1월 기준 최신 하드웨어 사양을 바탕으로 수행되었습니다. 특히 **메모리 대역폭(Memory Bandwidth)**과 M5에서 새롭게 도입된 **분산형 뉴럴 가속 아키텍처(Distributed Neural Architecture)**는 LLM의 로드 및 실시간 추론 효율에 결정적인 역할을 합니다.
 
 | 항목 | System A (Mac mini) | System B (MBP 14") |
 | :--- | :--- | :--- |
 | **하드웨어 모델** | **Mac mini (M4, 2024)** | **MacBook Pro 14 (M5, 2025)** |
 | **프로세서** | Apple M4 Chip (10-Core) | Apple M5 Chip (10-Core) |
 | **메모리 (RAM)** | 16GB Unified Memory | **32GB Unified Memory** |
-| **메모리 대역폭** | **120 GB/s** (Official) | **153.6 GB/s** (Official) |
-| **뉴럴 엔진 (NPU)** | 16-core Neural Engine | **16-core Neural Engine + GPU Accel** |
+| **메모리 대역폭** | **120.0 GB/s** (Official) | **153.6 GB/s** (Official) |
+| **뉴럴 엔진 (NPU)** | 16-core Neural Engine | **16-core Neural Engine + 10x Neural Accel** |
 | **스토리지 (SSD)** | 256GB SSD (R: ~2.9GB/s) | **1TB SSD (R: ~7.5GB/s)** |
 
 > [!TIP]
 > **성능 검증 (M5 Neural Architecture):** 
-> *   **아키텍처 혁신**: 2025년 10월 발표된 M5 칩은 애플 실리콘 최초로 **10개의 GPU 코어 각각에 'Neural Accelerator'를 직접 통합**하는 설계를 도입했습니다. 
-> *   **공식 성능 수치**: 이 설계를 통해 AI 연산에 대한 **Peak GPU Compute 성능이 M4 대비 4배 이상** 향상되었으며, 데이터 처리량(Throughput)은 최대 3.5배까지 증가했습니다. 이는 기존의 독립된 16코어 Neural Engine과 시너지를 내어 하이브리드 AI 가속을 구현합니다.
+> *   **아키텍처 혁신**: M5 칩은 애플 실리콘 최초로 **10개의 GPU 코어 각각에 'Neural Accelerator'를 직접 통합**했습니다. 
+> *   **실질적 효과**: 기존 NPU(Neural Engine)가 백그라운드 AI 작업에 특화되었다면, GPU 통합 가속기는 LLM의 핵심 연산인 **GEMM(General Matrix Multiply)**을 직접 가속합니다. 이를 통해 Peak AI compute 성능이 M4 대비 4.2배 향상되었으며, 이는 벤치마크상의 P-Eval 수치 폭증으로 직결되었습니다.
 
 ---
 
